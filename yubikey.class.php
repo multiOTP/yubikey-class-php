@@ -23,8 +23,8 @@
  * PHP 5.3.0 or higher is supported.
  *
  * @author    Andre Liechti, SysCo systemes de communication sa, <info@multiotp.net>
- * @version   4.3.1.3
- * @date      2014-12-25
+ * @version   4.3.2.0
+ * @date      2015-01-04
  * @since     2014-11-04
  * @copyright (c) 2014 SysCo systemes de communication sa
  * @copyright GNU Lesser General Public License
@@ -58,7 +58,7 @@
  *   <?php
  *     require_once('yubikey.class.php');
  *     $yubikey = new Yubikey();
- *     $result = $yubikey->CheckYubicoOtp($yubico_modhex_encrypted_part,
+ *     $result = $yubikey->checkYubicoOtp($yubico_modhex_encrypted_part,
  *                                        $secret,
  *                                        $last_valid_position);
  *   ?>
@@ -73,33 +73,36 @@
  *
  * Integrated package used
  *
- *   AES128 - AES 128 encryption and description algorithms using pure PHP code (LGPLv2.1)
+ *   AES128 - AES 128 encryption and decryption algorithms using pure PHP code (LGPLv2.1)
  *   Jose Manuel Busto Lopez
  *   http://www.phpclasses.org/package/3650-PHP-A-pure-PHP-AES-128-encryption-implementation.html
  *
  *
  * Change Log
  *
+ *   2014-01-04 4.3.2.0 SysCo/al Some modifications for future PSR compliance (http://www.php-fig.org/)
  *   2014-12-25 4.3.1.3 SysCo/al Dvorak auto-detection and support for ModHexToHex and CheckYubicoOtp
  *   2014-12-22 4.3.1.2 SysCo/al AES128 integration
  *   2014-11-04 4.3.0.0 SysCo/al Initial release, version number is synchronized with the multiOTP project
  *********************************************************************/
 
-class Yubikey
+class Yubikey {
 /**
  * @class     Yubikey
  * @brief     Class definition for Yubikey handling.
  *
  * @author    Andre Liechti, SysCo systemes de communication sa, <info@multiotp.net>
- * @version   4.3.1.3
- * @date      2014-12-25
+ * @version   4.3.2.0
+ * @date      2015-01-04
  * @since     2014-11-04
  */
-{
     var $_yubikey_last_response      = array();            // YubiKey last response array
 	var $_yubico_modhex_chars        = "cbdefghijklnrtuv"; // ModHex values (instead of 0,1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f)
 	var $_yubico_modhex_dvorak_chars = "jxe.uidchtnbpygk"; // Dvorak ModHex values (instead of 0,1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f)
     var $_yubico_otp_last_count      = -1;                 // Default value of the last otp counter
+
+    const YUBICO_MODHEX_CHARS        = "cbdefghijklnrtuv"; // ModHex values (instead of 01234567890abcdef)
+    const YUBICO_MODHEX_DVORAK_CHARS = "jxe.uidchtnbpygk"; // Dvorak ModHex values (instead of 0,1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f)
 
 
     // AES stuff, based on Jose Manuel Busto Lopez AES128 library
@@ -142,12 +145,12 @@ class Yubikey
         131, 83, 153, 97, 23, 43, 4, 126, 186, 119, 214, 38, 225, 105, 20, 99, 85,
         33, 12, 125);
     
-    var $aes_rcon = array (
+    var $aes_rcon = array(
         0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8,
         0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4,
         0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91);
     
-    var $aes_T2 = array( 
+    var $aes_T2 = array(
         0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 
         32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 
         62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 
@@ -166,7 +169,7 @@ class Yubikey
         223, 221, 211, 209, 215, 213, 203, 201, 207, 205, 195, 193, 199, 197, 251, 
         249, 255, 253, 243, 241, 247, 245, 235, 233, 239, 237, 227, 225, 231, 229);
     
-    var $aes_T3 = array( 
+    var $aes_T3 = array(
         0, 3, 6, 5, 12, 15, 10, 9, 24, 27, 30, 29, 20, 23, 18, 17, 
         48, 51, 54, 53, 60, 63, 58, 57, 40, 43, 46, 45, 36, 39, 34, 
         33, 96, 99, 102, 101, 108, 111, 106, 105, 120, 123, 126, 125, 116, 119, 
@@ -185,7 +188,7 @@ class Yubikey
         61, 62, 55, 52, 49, 50, 35, 32, 37, 38, 47, 44, 41, 42, 11, 
         8, 13, 14, 7, 4, 1, 2, 19, 16, 21, 22, 31, 28, 25, 26);
     
-    var $aes_T9 = array( 
+    var $aes_T9 = array(
         0, 9, 18, 27, 36, 45, 54, 63, 72, 65, 90, 83, 108, 101, 126, 119, 
         144, 153, 130, 139, 180, 189, 166, 175, 216, 209, 202, 195, 252, 245, 238, 
         231, 59, 50, 41, 32, 31, 22, 13, 4, 115, 122, 97, 104, 87, 94, 
@@ -204,7 +207,7 @@ class Yubikey
         179, 186, 133, 140, 151, 158, 233, 224, 251, 242, 205, 196, 223, 214, 49, 
         56, 35, 42, 21, 28, 7, 14, 121, 112, 107, 98, 93, 84, 79, 70);
     
-    var $aes_T11 = array( 
+    var $aes_T11 = array(
         0, 11, 22, 29, 44, 39, 58, 49, 88, 83, 78, 69, 116, 127, 98, 105, 
         176, 187, 166, 173, 156, 151, 138, 129, 232, 227, 254, 245, 196, 207, 210, 
         217, 123, 112, 109, 102, 87, 92, 65, 74, 35, 40, 53, 62, 15, 4, 
@@ -223,7 +226,7 @@ class Yubikey
         108, 103, 86, 93, 64, 75, 34, 41, 52, 63, 14, 5, 24, 19, 202, 
         193, 220, 215, 230, 237, 240, 251, 146, 153, 132, 143, 190, 181, 168, 163);
     
-    var $aes_T13 = array( 
+    var $aes_T13 = array(
         0, 13, 26, 23, 52, 57, 46, 35, 104, 101, 114, 127, 92, 81, 70, 75, 
         208, 221, 202, 199, 228, 233, 254, 243, 184, 181, 162, 175, 140, 129, 150, 
         155, 187, 182, 161, 172, 143, 130, 149, 152, 211, 222, 201, 196, 231, 234, 
@@ -242,7 +245,7 @@ class Yubikey
         22, 27, 56, 53, 34, 47, 100, 105, 126, 115, 80, 93, 74, 71, 220, 
         209, 198, 203, 232, 229, 242, 255, 180, 185, 174, 163, 128, 141, 154, 151);
     
-    var $aes_T14 = array ( 
+    var $aes_T14 = array(
         0, 14, 28, 18, 56, 54, 36, 42, 112, 126, 108, 98, 72, 70, 84, 90, 
         224, 238, 252, 242, 216, 214, 196, 202, 144, 158, 140, 130, 168, 166, 180, 
         186, 219, 213, 199, 201, 227, 237, 255, 241, 171, 165, 183, 185, 147, 157, 
@@ -269,140 +272,166 @@ class Yubikey
     var $aes_shifts_l=array(array(0, 1, 2, 3),array(1, 2, 3, 0),array(2, 3, 0, 1),array(3, 0, 1, 2));
     
    
-    function AesKeyAddition($rk) {
-        //Para cada ronda hacemos una XOR entre aes_Sbox[i][j] y rk[round][i][j].
-       for($i = 0; $i < 4; $i++)
-            for($j = 0; $j < $this->aes_Nb; $j++)
+    function aesKeyAddition(
+        $rk
+    ) {
+       for($i = 0; $i < 4; $i++) {
+            for($j = 0; $j < $this->aes_Nb; $j++) {
                 $this->aes_state[$i][$j] ^= $rk[$i][$j];
+            }
+        }
     }
 
 
-    function AesByteSubShiftRow(){
+    function aesByteSubShiftRow() {
         $tmp= array(array());
-        for($i = 0; $i < 4; $i++)
-            for($j = 0; $j < $this->aes_Nb; $j++)                
+        for($i = 0; $i < 4; $i++) {
+            for($j = 0; $j < $this->aes_Nb; $j++) {
                 $tmp[$i][$this->aes_shifts_r[$i][$j]]= $this->aes_Sbox[$this->aes_state[$i][$j]];
+            }
+        }
         $this->aes_state=$tmp;
     }
 
 
-    function AesMixColumnKeyAddition($rk){
+    function aesMixColumnKeyAddition(
+        $rk
+    ){
         $b= array(array());
-        for($j = 0; $j < 4; $j++)
-            for($i = 0; $i < $this->aes_Nb; $i++){
+        for($j = 0; $j < 4; $j++) {
+            for($i = 0; $i < $this->aes_Nb; $i++) {
                 $b[$i][$j] = $this->aes_T2[$this->aes_state[$i][$j]] ^ $this->aes_T3[$this->aes_state[($i + 1) % 4][$j]] ^ $this->aes_state[($i + 2) % 4][$j] ^ $this->aes_state[($i + 3) % 4][$j];
                 $b[$i][$j]^=$rk[$i][$j];
             }
+        }
         $this->aes_state = $b;
     }
 
 
-    function AesInvMixColumn() {
+    function aesInvMixColumn() {
         $b= array(array());
-        for($j = 0; $j < 4; $j++)
-            for($i = 0; $i < $this->aes_Nb; $i++)
+        for($j = 0; $j < 4; $j++) {
+            for($i = 0; $i < $this->aes_Nb; $i++) {
                 $b[$i][$j] = $this->aes_T14[$this->aes_state[$i][$j]] ^ $this->aes_T11[$this->aes_state[($i + 1) % 4][$j]] ^ $this->aes_T13[$this->aes_state[($i + 2) % 4][$j]] ^ $this->aes_T9[$this->aes_state[($i + 3) % 4][$j]];
-         $this->aes_state = $b;
+            }
+        }
+        $this->aes_state = $b;
     }
 
     
-    function AesInvShiftRowInvByteSub() {
+    function aesInvShiftRowInvByteSub() {
         $tmp= array(array());
-        for($i = 0; $i < 4; $i++)
-            for($j = 0; $j < $this->aes_Nb; $j++)
+        for($i = 0; $i < 4; $i++) {
+            for($j = 0; $j < $this->aes_Nb; $j++) {
                 $tmp[$i][$this->aes_shifts_l[$i][$j]]= $this->aes_Sboxi[$this->aes_state[$i][$j]];
+            }
+        }
         $this->aes_state=$tmp;
     }  
 
     
-    function AesMakeKey($hash){
+    function aesMakeKey(
+        $hash
+    ) {
         $rconpocharer = 0;
-        $tk=array(array());;
+        $tk=array(array());
         $rk=array(array(array()));
-        for($j = 0; $j < $this->aes_Nk; $j++)
-            for($i = 0; $i < 4; $i++)
+        for($j = 0; $j < $this->aes_Nk; $j++) {
+            for($i = 0; $i < 4; $i++) {
                 $tk[$i][$j] = ord($hash{$j*4+$i})>256 ? ord($hash{$j*4+$i})%256 : ord($hash{$j*4+$i});
+            }
+        }
         $t = 0;
         
-        for($j = 0; ($j < $this->aes_Nk) && ($t < ($this->aes_Nr+1)*$this->aes_Nb); $j++, $t++)
-            for($i = 0; $i < 4; $i++)
+        for($j = 0; ($j < $this->aes_Nk) && ($t < ($this->aes_Nr+1)*$this->aes_Nb); $j++, $t++) {
+            for($i = 0; $i < 4; $i++) {
                 $rk[$t / $this->aes_Nb][$i][$t % $this->aes_Nb] = $tk[$i][$j];
+            }
+        }
         while ($t < ($this->aes_Nr+1)*$this->aes_Nb) {
-            
-            for($i = 0; $i < 4; $i++) 
+            for($i = 0; $i < 4; $i++) {
                 $tk[$i][0] ^= $this->aes_Sbox[$tk[($i+1)%4][$this->aes_Nk-1]];
+            }
             $tk[0][0] ^= $this->aes_rcon[$rconpocharer++];
-            for($j = 1; $j < $this->aes_Nk; $j++)
-                for($i = 0; $i < 4; $i++){
-                     $tk[$i][$j] ^= $tk[$i][$j-1];
+            for($j = 1; $j < $this->aes_Nk; $j++) {
+                for($i = 0; $i < 4; $i++) {
+                    $tk[$i][$j] ^= $tk[$i][$j-1];
                 }
-            for($j = 0; ($j < $this->aes_Nk) && ($t < ($this->aes_Nr+1)*$this->aes_Nb); $j++, $t++)
+            }
+            for($j = 0; ($j < $this->aes_Nk) && ($t < ($this->aes_Nr+1)*$this->aes_Nb); $j++, $t++) {
                 for($i = 0; $i < 4; $i++) {
                     $rk[$t / $this->aes_Nb][$i][$t % $this->aes_Nb] = $tk[$i][$j];
                 }
+            }
         }
         return $rk;
     }
 
 
-    function AesBlockEncrypt($in, $key){
-        
-        for ($i=0; $i<4; $i++){
-            for ($j=0; $j<$this->aes_Nb; $j++){
+    function aesBlockEncrypt(
+        $in,
+        $key
+    ) {
+        for ($i=0; $i<4; $i++) {
+            for ($j=0; $j<$this->aes_Nb; $j++) {
                 $this->aes_state[$j][$i]=ord($in{$i*4+$j});
             }
         }
-        $this->AesKeyAddition($key[0]);
+        $this->aesKeyAddition($key[0]);
         for($r = 1; $r < $this->aes_Nr; $r++) {
-            $this->AesByteSubShiftRow();
-            $this->AesMixColumnKeyAddition($key[$r]);
-         }
-        $this->AesByteSubShiftRow();
-        $this->AesKeyAddition($key[$this->aes_Nr]);
+            $this->aesByteSubShiftRow();
+            $this->aesMixColumnKeyAddition($key[$r]);
+        }
+        $this->aesByteSubShiftRow();
+        $this->aesKeyAddition($key[$this->aes_Nr]);
         $out="";
-        for($i=0; $i<4; $i++)
-          for ($j=0; $j<4; $j++)
-            $out.=chr($this->aes_state[$j][$i]);
+        for($i=0; $i<4; $i++) {
+            for ($j=0; $j<4; $j++) {
+                $out.=chr($this->aes_state[$j][$i]);
+            }
+        }
         return $out;
     }
 
 
-    function AesBlockDecrypt($in, $key) {
-        
-        for ($i=0; $i<4; $i++){
-            for ($j=0; $j<$this->aes_Nb; $j++){
+    function aesBlockDecrypt(
+        $in,
+        $key
+    ) {
+        for ($i=0; $i<4; $i++) {
+            for ($j=0; $j<$this->aes_Nb; $j++) {
                 $this->aes_state[$j][$i]=ord($in{$i*4+$j});
             }
         }
-        $this->AesKeyAddition($key[$this->aes_Nr]);
+        $this->aesKeyAddition($key[$this->aes_Nr]);
         for($r = $this->aes_Nr-1; $r > 0; $r--) {
-            $this->AesInvShiftRowInvByteSub();
-            $this->AesKeyAddition($key[$r]);
-            $this->AesInvMixColumn();
-         }
-        $this->AesInvShiftRowInvByteSub();  
-        $this->AesKeyAddition($key[0]);
+            $this->aesInvShiftRowInvByteSub();
+            $this->aesKeyAddition($key[$r]);
+            $this->aesInvMixColumn();
+        }
+        $this->aesInvShiftRowInvByteSub();  
+        $this->aesKeyAddition($key[0]);
         $out="";
-        for($i=0; $i<4; $i++)
-          for ($j=0; $j<4; $j++)
-            $out.=chr($this->aes_state[$j][$i]);  
+        for($i=0; $i<4; $i++) {
+            for ($j=0; $j<4; $j++) {
+                $out.=chr($this->aes_state[$j][$i]);
+            }
+        }
         return $out;
     }
 
 
-    function Iso13239Crc16($buffer)
+    function iso13239Crc16(
+        $buffer
+    ) {
     // http://forum.yubico.com/viewtopic.php?f=2&t=69
-    {
         $crc = 0xffff;
-        for($loop=0; $loop<strlen($buffer); $loop++)
-        {
+        for($loop=0; $loop<strlen($buffer); $loop++) {
             $crc ^= ord($buffer[$loop]) & 0xff;
-            for ($bit=0; $bit<8; $bit++)
-            {
+            for ($bit=0; $bit<8; $bit++) {
                 $j=$crc & 1;
                 $crc >>= 1;
-                if ($j)
-                {
+                if ($j) {
                     $crc ^= 0x8408;
                 }
             }
@@ -411,15 +440,28 @@ class Yubikey
     }
 
 
-    function CheckYubicoOtp($yubico_modhex_encrypted_part,
-                            $secret,
-                            $last_count = -1,
-                            $dvorak_only = FALSE)
-    {
+    function checkYubicoOtp(
+        $yubico_modhex_encrypted_part,
+        $secret,
+        $last_count = -1,
+        $dvorak_only = false
+    ) {
+    /**
+     * Based on information available here: https://www.yubico.com/wp-content/uploads/2014/10/YubiKey-Manual-v3.3.pdf
+     *
+     * $uid         Private (secret) ID
+     * $useCtr      Usage counter, non-volatile counter, incremented when device is used after a power-up or reset
+     * $tstp        Timestamp, 8Hz, random value startup, wraps from 0xffffff to 0 (after 24 days)
+     * $sessionCtr  Session usage counter, set to 0 at power-up, incremented by one after each generation
+     * $rnd         Random number
+     * $crc         Checksum, 16-bit ISO13239 1st complement checksum of the first 14 bytes, result added to the end
+     *                $crc = 0xffff - $this->iso13239Crc16(substr($decrypted_part, 0, 14)); // One's complement
+     * $check_crc   Calculate the ISO13239 of the 16 bits, should give a fixed residual of 0xf0b8 if checksum is valid
+     */
         $result = "BAD_OTP";
 
-        $encrypted_part = hex2bin($this->ModHexToHex($yubico_modhex_encrypted_part, $dvorak_only));
-        $decrypted_part = $this->AesBlockDecrypt($encrypted_part, $this->AesMakeKey(hex2bin($secret)));
+        $encrypted_part = hex2bin($this->modHexToHex($yubico_modhex_encrypted_part, $dvorak_only));
+        $decrypted_part = $this->aesBlockDecrypt($encrypted_part, $this->aesMakeKey(hex2bin($secret)));
 
         $uid        = bin2hex(substr($decrypted_part,  0, 6));
         $useCtr     = ord($decrypted_part[6]) + 256 * ord($decrypted_part[7]);
@@ -427,7 +469,7 @@ class Yubikey
         $sessionCtr = ord($decrypted_part[11]);
         $rnd        = ord($decrypted_part[12]) + 256 * ord($decrypted_part[13]);
         $crc        = ord($decrypted_part[14]) + 256 * ord($decrypted_part[15]);
-        $check_crc  = $this->Iso13239Crc16($decrypted_part);
+        $check_crc  = $this->iso13239Crc16($decrypted_part);
         
         $this->_yubikey_last_response['uid']        = $uid;
         $this->_yubikey_last_response['useCtr']     = $useCtr;
@@ -436,138 +478,97 @@ class Yubikey
         $this->_yubikey_last_response['rnd']        = $rnd;
         $this->_yubikey_last_response['crc']        = $crc;
 
-        // Based on information available here: https://www.yubico.com/wp-content/uploads/2014/10/YubiKey-Manual-v3.3.pdf
-        //
-        // $uid         Private (secret) ID
-        // $useCtr      Usage counter, non-volatile counter, incremented when device is used after a power-up or reset
-        // $tstp        Timestamp, 8Hz, random value startup, wraps from 0xffffff to 0 (after 24 days)
-        // $sessionCtr  Session usage counter, set to 0 at power-up, incremented by one after each generation
-        // $rnd         Random number
-        // $crc         Checksum, 16-bit ISO13239 1st complement checksum of the first 14 bytes, result added to the end
-        //                $crc = 0xffff - $this->Iso13239Crc16(substr($decrypted_part, 0, 14)); // One's complement
-        // $check_crc   Calculate the ISO13239 of the 16 bits, should give a fixed residual of 0xf0b8 if checksum is valid
-
-        if (0xf0b8 == $check_crc) // Check should always give 0xf0b8
-        {
+        // Check should always give 0xf0b8
+        if (0xf0b8 == $check_crc) {
             $counter_position = ($useCtr * 256) + $sessionCtr;
-            if ($counter_position <= $last_count)
-            {
+            if ($counter_position <= $last_count) {
                 $result = "REPLAYED_OTP"; // ERROR: this token has already been used
-            }
-            else
-            {
+            } else {
                 $this->_yubico_otp_last_count = $counter_position;
                 $result = "OK";
             }
-        }
-        elseif ((!$dvorak_only) && $this->IsModHex($yubico_modhex_encrypted_part) && $this->IsDvorakModHex($yubico_modhex_encrypted_part))
-        {
-            $result = $this->CheckYubicoOtp($yubico_modhex_encrypted_part,
+        } elseif ((!$dvorak_only) && $this->isModHex($yubico_modhex_encrypted_part) && $this->isDvorakModHex($yubico_modhex_encrypted_part)) {
+            $result = $this->checkYubicoOtp($yubico_modhex_encrypted_part,
                                             $secret,
                                             $last_count,
-                                            TRUE); // Check for Dvorak only
+                                            true); // Check for Dvorak only
         }
         return $result;
     }
 
 
-    function GetYubikeyLastResponse()
-    {
+    function getYubikeyLastResponse() {
         return $this->_yubikey_last_response;
     }
 
 
-    function GetYubicoOtpLastCount()
-    {
+    function getYubicoOtpLastCount() {
         return $this->_yubico_otp_last_count;
     }
 
 
-    function IsModHex($modhex)
-    {
-        $result = FALSE;
-        if (0 == (strlen($modhex) % 2))
-        {
-            for ($loop = 0; $loop < strlen($modhex); $loop++)
-            {
-                $value = strpos($this->_yubico_modhex_chars, strtolower($modhex[$loop]));
-                if (FALSE === $value)
-                {
-                    return FALSE;
+    function isModHex($modhex) {
+        $result = false;
+        if (0 == (strlen($modhex) % 2)) {
+            for ($loop = 0; $loop < strlen($modhex); $loop++) {
+                $value = strpos(self::YUBICO_MODHEX_CHARS, strtolower($modhex[$loop]));
+                if (false === $value) {
+                    return false;
                 }
             }
-            $result = TRUE;
+            $result = true;
         }
 		return $result;		
     }
 
 
-    function IsDvorakModHex($modhex)
-    {
-        $result = FALSE;
-        if (0 == (strlen($modhex) % 2))
-        {
-            for ($loop = 0; $loop < strlen($modhex); $loop++)
-            {
-                $value = strpos($this->_yubico_modhex_dvorak_chars, strtolower($modhex[$loop]));
-                if (FALSE === $value)
-                {
-                    return FALSE;
+    function isDvorakModHex($modhex) {
+        $result = false;
+        if (0 == (strlen($modhex) % 2)) {
+            for ($loop = 0; $loop < strlen($modhex); $loop++) {
+                $value = strpos(self::YUBICO_MODHEX_DVORAK_CHARS, strtolower($modhex[$loop]));
+                if (false === $value) {
+                    return false;
                 }
             }
-            $result = TRUE;
+            $result = true;
         }
 		return $result;		
     }
 
 
-	function HexToModHex($hexa)
-    {
+	function hexToModHex($hexa) {
         $result = '';
-        if (0 == (strlen($hexa) % 2))
-        {
-            for ($loop = 0; $loop < strlen($hexa); $loop++)
-            {
+        if (0 == (strlen($hexa) % 2)) {
+            for ($loop = 0; $loop < strlen($hexa); $loop++) {
                 $value = hexdec(strtolower($hexa[$loop]));
-                if ($value > 15)
-                {
-                    return FALSE;
+                if ($value > 15) {
+                    return false;
                 }
-                $result.= $this->_yubico_modhex_chars[$value];
+                $result.= substr(self::YUBICO_MODHEX_CHARS,$value,1);
             }
-        }
-        else
-        {
-            $result = FALSE;
+        } else {
+            $result = false;
         }
 		return $result;		
 	}
     
     
-	function ModHexToHex($modhex, $force_dvorak = FALSE)
-    {
+	function modHexToHex($modhex, $force_dvorak = false) {
         $result = '';
-        if ($this->IsModHex($modhex) && (!$force_dvorak))
-        {
-            for ($loop = 0; $loop < strlen($modhex); $loop++)
-            {
-                $value = strpos($this->_yubico_modhex_chars, strtolower($modhex[$loop]));
+        if ($this->isModHex($modhex) && (!$force_dvorak)) {
+            for ($loop = 0; $loop < strlen($modhex); $loop++) {
+                $value = strpos(self::YUBICO_MODHEX_CHARS, strtolower($modhex[$loop]));
                 $result.= dechex($value);
             }
-        }
-        elseif ($this->IsDvorakModHex($modhex))
-        {
-            for ($loop = 0; $loop < strlen($modhex); $loop++)
-            {
-                $value = strpos($this->_yubico_modhex_dvorak_chars, strtolower($modhex[$loop]));
+        } elseif ($this->isDvorakModHex($modhex)) {
+            for ($loop = 0; $loop < strlen($modhex); $loop++) {
+                $value = strpos(self::YUBICO_MODHEX_DVORAK_CHARS, strtolower($modhex[$loop]));
                 $result.= dechex($value);
             }
-        }
-        else
-        {
-            $result = FALSE;
+        } else {
+            $result = false;
         }
 		return $result;		
 	}
 }
-?>

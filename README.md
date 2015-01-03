@@ -3,13 +3,16 @@ YubiKey PHP class
 
 Yubikey PHP class is a GNU LGPL class to check a YubiKey authentication locally
 
-(c) 2014 SysCo systemes de communication sa  
+(c) 2014-2015 SysCo systemes de communication sa  
 The Yubikey PHP class is a subset of the multiOTP open source project.  
 http://www.multiOTP.net/
 
-Current build: 4.3.1.3 (2014-12-26)
+Current build: 4.3.2.0 (2015-01-04)
 
 No external file is needed (no PEAR, no PECL).
+
+AES 128 encryption and decryption algorithms using pure PHP code (LGPLv2.1)
+from Jose Manuel Busto Lopez is directly integrated in the source code.
 
 In Yubico OTP mode, when the YubiKey button is pressed, the returned
 string is 44 characters long, with 12 characters for the fixed public id,
@@ -23,7 +26,7 @@ identification handler to decrypt the dynamic OTP part.
     <?php
         require_once('yubikey.class.php');
         $yubikey = new Yubikey();
-        $result = $yubikey->CheckYubicoOtp($yubico_modhex_encrypted_part,
+        $result = $yubikey->checkYubicoOtp($yubico_modhex_encrypted_part,
                                            $secret,
                                            $last_valid_position);
     ?>

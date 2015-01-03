@@ -10,8 +10,8 @@
  * PHP 5.3.0 or higher is supported.
  *
  * @author    Andre Liechti, SysCo systemes de communication sa, <info@multiotp.net>
- * @version   4.3.1.3
- * @date      2014-12-26
+ * @version   4.3.2.0
+ * @date      2015-01-04
  * @since     2014-11-04
  * @copyright (c) 2014 SysCo systemes de communication sa
  * @copyright GNU Lesser General Public License
@@ -42,14 +42,9 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * Usage
- *
- *   You need a free Yubico API key. You can ask for your own key here:
- *     https://upgrade.yubico.com/getapikey/
- *
- *
  * Change Log
  *
+ *   2014-01-04 4.3.2.0 SysCo/al Some modifications for future PSR compliance (http://www.php-fig.org/)
  *   2014-12-26 4.3.1.3 SysCo/al Additional detailed information
  *   2014-12-22 4.3.1.2 SysCo/al Detailed response information
  *   2014-11-04 4.3.0.0 SysCo/al Initial release, version number is synchronized with the multiOTP project
@@ -66,10 +61,9 @@
     $result = "";
     $detail_result = "";
 
-    if (0 != strlen($otp_to_check))
-    {
+    if (0 != strlen($otp_to_check)) {
         $yubikey = new Yubikey();
-        $result = $yubikey->CheckYubicoOtp(substr($otp_to_check,12),
+        $result = $yubikey->checkYubicoOtp(substr($otp_to_check,12),
                                            $secret,
                                            $last_valid_position);
 
@@ -80,9 +74,8 @@
         $detail_result.= "<br />";
         $detail_result.= "Local check result: <b>$result</b>\n";
 
-        if ("OK" == $result)
-        {
-            $last_valid_position = $yubikey->GetYubicoOtpLastCount();
+        if ("OK" == $result) {
+            $last_valid_position = $yubikey->getYubicoOtpLastCount();
             $detail_result.= "<br />";
             $detail_result.= "Last valid position: <b>".$last_valid_position."</b>\n";
             $focus_field = "otp";
@@ -93,12 +86,10 @@
         $detail_result.= "Detailed response: <br />\n";
         $detail_result.= "<table>\n";
         
-        foreach($yubikey->GetYubikeyLastResponse() as $key=>$value)
-        {
+        foreach($yubikey->getYubikeyLastResponse() as $key=>$value) {
             $detail_result.= "<tr><td>$key ";
             $detail_result.= " :</td><td><b>$value</b></td><td><i>";
-            switch ($key)
-            {
+            switch ($key) {
                 case "uid":
                     $detail_result.= "Private (secret) ID";
                     break;
